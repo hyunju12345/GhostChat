@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Chat</title>
+    <style>
+      body { font-family: sans-serif; padding: 20px; }
+      #messages { border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: auto; }
+    </style>
+  </head>
+  <body>
+    <h2>💬 Simple WebSocket Chat</h2>
+    <div id="messages"></div>
+    <input id="msgInput" placeholder="Type a message..." />
+    <button id="button">Send</button>
+
+    <script>
+        // creating a new connection for our server, so connect websocket to server
+      const socket = new WebSocket('ws://localhost:8080');
+      
+      //indentify the variables and get them by id
+      const messagesDiv= document.getElementById('messages');
+      const input = document.getElementById('msgInput');
+      const button = document.getElementById('button');
+
+      socket.addEventListener('open', ()=>{
+        const elem = document.createElement('div');
+        elem.textContent = 'connected to server';
+        messagesDiv.appendChild(elem);
+      });
+
+      socket.addEventListener('message', (event)=>{
+        const elem = document.createElement('div'); 
+        elem.textContent = event.data; //I got a new message
+        messagesDiv.appendChild(elem);
+      });
+
+      button.addEventListener('click', ()=>{
+        socket.send(input.value); //send message to the server and does all of the code part in js(socket.on('message',(data)=>{)) and then the socket.addEventListener is like we got a message
+        input.value='';
+      })
+    </script>
+  </body>
+</html>
