@@ -103,7 +103,6 @@
 
     busyBtn.addEventListener("click", () => {
       const autoMessage = "Automated message: I'm busy right now, I will reply later.";
-
       socket.send(autoMessage);
 
       reasonInput.value = "";
@@ -112,6 +111,7 @@
       window.location.href = "home.html";
 
     });
+
   </script>
 </body>
 

@@ -1,32 +1,57 @@
 <!-- quick code from chatgpt to fill page, EDIT THIS STYLE -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Conversation Ended</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      text-align: center;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Conversation Ended</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
+
 <body>
-  <h2>You exited the conversation.</h2>
-  <p>Your reason has been sent to the other user.</p>
+    <h2>You exited the conversation.</h2>
+    <p>Your reason has been sent to the other user.</p>
 
-  <button onclick="returnToChat()">Return to Chat</button>
+    <p id="countdown">0:10</p>
+    <button onclick="returnToChat()">Return to Chat</button>
 
-  <script>
-    function returnToChat() {
-      window.location.href = "index.html";
-    }
-  </script>
+    <script>
+        function returnToChat() {
+            window.location.href = "index.html";
+        }
+        // making the timer for when the user choose to click im busy option, followed tutorial: https://www.youtube.com/watch?v=x7WJEmxNlEs
+        const startingSeconds = 10; // 10 seconds for quick test
+        let time = startingSeconds;
+
+        const countdownEl = document.getElementById('countdown');
+
+        setInterval(updateCountdown, 1000);
+
+        function updateCountdown() {
+            const minutes = Math.floor(time / 60);
+            let seconds = time % 60;
+
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            countdownEl.innerHTML = `${minutes}:${seconds}`;
+            if (time > 0) {
+                time--;
+            } else {
+                countdownEl.innerHTML = "Time up!";
+            }
+        }
+    </script>
 </body>
+
 </html>
