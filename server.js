@@ -30,7 +30,7 @@ wss.on('connection', (socket) =>{
         // looping through each client 
         wss.clients.forEach(client => {
             // checks if client is ready to get a message 
-            if(client.readyState === socket.OPEN){
+            if(client.readyState === client.OPEN){
                 // sending the message to all the clients 
                 client.send(data.toString()) // sending data back out
             }
@@ -44,7 +44,9 @@ wss.on('connection', (socket) =>{
 })
 
 
-// telling our server which port to listen on 
-server.listen(8080, () => {
-    console.log('WebSocket server running on ws://localhost:8080'); 
-})
+// use a port variable like the drawing app
+const PORT = 3000;
+
+server.listen(PORT, () => {
+  console.log(`Server is listening on http://localhost:${PORT}`);
+});

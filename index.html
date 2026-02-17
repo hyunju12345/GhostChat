@@ -1,43 +1,118 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Simple Chat</title>
-    <style>
-      body { font-family: sans-serif; padding: 20px; }
-      #messages { border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: auto; }
-    </style>
-  </head>
-  <body>
-    <h2>💬 Simple WebSocket Chat</h2>
-    <div id="messages"></div>
-    <input id="msgInput" placeholder="Type a message..." />
-    <button id="button">Send</button>
 
-    <script>
-        // creating a new connection for our server, so connect websocket to server
-      const socket = new WebSocket('ws://localhost:8080');
-      
-      //indentify the variables and get them by id
-      const messagesDiv= document.getElementById('messages');
-      const input = document.getElementById('msgInput');
-      const button = document.getElementById('button');
+<head>
+  <title>Simple Chat</title>
+  <link rel="stylesheet" href="style.css">
 
-      socket.addEventListener('open', ()=>{
-        const elem = document.createElement('div');
-        elem.textContent = 'connected to server';
-        messagesDiv.appendChild(elem);
-      });
+</head>
 
-      socket.addEventListener('message', (event)=>{
-        const elem = document.createElement('div'); 
-        elem.textContent = event.data; //I got a new message
-        messagesDiv.appendChild(elem);
-      });
+<body>
+  <h2>💬 Simple WebSocket Chat</h2>
+  <div id="messages"></div>
+  <input id="msgInput" placeholder="Type a message..." />
+  <button id="button">Send</button>
+  <button id="exitBtn">&larr;</button>
 
-      button.addEventListener('click', ()=>{
-        socket.send(input.value); //send message to the server and does all of the code part in js(socket.on('message',(data)=>{)) and then the socket.addEventListener is like we got a message
-        input.value='';
-      })
-    </script>
-  </body>
+  <!-- Reason box -->
+  <div id="reasonBox">
+    <h2>We that you are exiting the page, why do you not want to reply?</h2>
+    <button id="busyBtn">I'm busy, remind me later</button>
+    <input type="text" id="reasonInput" placeholder="Explain why you don't want to respond">
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script>
+    // creating a new connection for our server, so connect websocket to server
+    // const socket = new WebSocket('ws://149.31.198.176:3000');
+
+    //this one is localhost so use this one when you are testing two tabs on one computer
+    const socket = new WebSocket('ws://localhost:3000');
+
+    //indentify the variables that is needed for interaction in this chat and get them by id
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('msgInput');
+    const button = document.getElementById('button');
+    const exitBtn = document.getElementById("exitBtn");
+    const reasonBox = document.getElementById("reasonBox");
+    const sendBtn = document.getElementById("sendBtn");
+    const busyBtn = document.getElementById("busyBtn");
+    const reasonInput = document.getElementById("reasonInput");
+
+    //the reason box will not show from the beginning, only triggered when user exit the chat
+    reasonBox.style.display = "none";
+
+    // Load previous chat history from localStorage
+    let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+
+    // this is to allow previous messages to still show when we return to the page
+    chatHistory.forEach(msg => {
+      const elem = document.createElement('div');
+      elem.textContent = msg;
+      messagesDiv.appendChild(elem);
+    });
+
+    //clear chat history, this is just to clean things no need for user to know about this key function
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "C" || event.key === "c") {
+        localStorage.removeItem("chatHistory");
+        chatHistory = [];
+        messagesDiv.innerHTML = "";
+      }
+    });
+
+
+    socket.addEventListener('open', () => {
+      const elem = document.createElement('div');
+      // elem.textContent = 'connected to server';
+      messagesDiv.appendChild(elem);
+    });
+
+    socket.addEventListener('message', (event) => {
+      const elem = document.createElement('div');
+      elem.textContent = event.data; //I got a new message
+      messagesDiv.appendChild(elem);
+
+      // Save message to chatHistory and localStorage
+      chatHistory.push(event.data);
+      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    });
+
+    button.addEventListener('click', () => {
+      socket.send(input.value); //send message to the server and does all of the code part in js(socket.on('message',(data)=>{)) and then the socket.addEventListener is like we got a message
+      input.value = '';
+    })
+
+    exitBtn.addEventListener("click", () => { //when the exitBtn is clicked then the reason box will show
+      reasonBox.style.display = "block";
+    });
+
+    sendBtn.addEventListener("click", () => {
+      const text = reasonInput.value.trim();
+      if (!text) return;
+
+      const autoMessage = `Automated message: I'm not responding because ${text}`;
+
+      socket.send(autoMessage);
+
+      reasonInput.value = "";
+      reasonBox.style.display = "none";
+
+      window.location.href = "home.html";
+    });
+
+    busyBtn.addEventListener("click", () => {
+      const autoMessage = "Automated message: I'm busy right now, I will reply later.";
+
+      socket.send(autoMessage);
+
+      reasonInput.value = "";
+      reasonBox.style.display = "none";
+
+      window.location.href = "home.html";
+
+    });
+  </script>
+</body>
+
 </html>

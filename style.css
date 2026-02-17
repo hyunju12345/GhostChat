@@ -1,0 +1,19 @@
+.body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+#messages {
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 200px;
+    overflow-y: auto;
+}
+
+/* this one is written by chatgpt for quick styling */
+#reasonBox {
+    border: 1px solid #aaa;
+    padding: 15px;
+    margin-top: 15px;
+    background: #f9f9f9;
+}
