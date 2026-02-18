@@ -16,7 +16,7 @@
 
   <!-- Reason box -->
   <div id="reasonBox">
-    <h2>We that you are exiting the page, why do you not want to reply?</h2>
+    <h2>We noticed that you are exiting the page, why do you not want to reply?</h2>
     <button id="busyBtn">I'm busy, remind me later</button>
     <input type="text" id="reasonInput" placeholder="Explain why you don't want to respond">
     <button id="sendBtn">Send</button>
@@ -24,10 +24,10 @@
 
   <script>
     // creating a new connection for our server, so connect websocket to server
-    // const socket = new WebSocket('ws://149.31.198.176:3000');
+    const socket = new WebSocket('ws://149.31.196.187:3000');
 
     //this one is localhost so use this one when you are testing two tabs on one computer
-    const socket = new WebSocket('ws://localhost:3000');
+    // const socket = new WebSocket('ws://localhost:3000');
 
     //indentify the variables that is needed for interaction in this chat and get them by id
     const messagesDiv = document.getElementById('messages');
@@ -54,7 +54,7 @@
 
     //clear chat history, this is just to clean things no need for user to know about this key function
     window.addEventListener("keydown", (event) => {
-      if (event.key === "C" || event.key === "c") {
+      if (event.key === "<" || event.key === "<") {
         localStorage.removeItem("chatHistory");
         chatHistory = [];
         messagesDiv.innerHTML = "";
