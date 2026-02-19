@@ -20,6 +20,7 @@
     <button id="busyBtn">I'm busy, remind me later</button>
     <input type="text" id="reasonInput" placeholder="Explain why you don't want to respond">
     <button id="sendBtn">Send</button>
+    <button id="closeBtn">Close</button> 
   </div>
 
   <script>
@@ -38,6 +39,7 @@
     const sendBtn = document.getElementById("sendBtn");
     const busyBtn = document.getElementById("busyBtn");
     const reasonInput = document.getElementById("reasonInput");
+    const closeBtn = document.getElementById("closeBtn");
 
     //the reason box will not show from the beginning, only triggered when user exit the chat
     reasonBox.style.display = "none";
@@ -90,8 +92,22 @@
       input.value = '';
     })
 
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        const text = input.value.trim();
+        if (!text) return;
+        socket.send(text);
+        input.value = '';
+      }
+    });
+
     exitBtn.addEventListener("click", () => { //when the exitBtn is clicked then the reason box will show
       reasonBox.style.display = "block";
+    });
+
+    closeBtn.addEventListener("click", () => {
+      reasonBox.style.display = "none";
+      reasonInput.value = "";
     });
 
     sendBtn.addEventListener("click", () => {
