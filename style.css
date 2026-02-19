@@ -1,19 +1,51 @@
-.body {
-    font-family: sans-serif;
+body {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: #000;
+    color: #00ff00;
     padding: 20px;
 }
 
 #messages {
-    border: 1px solid #ccc;
+    border: 2px solid #00ff00;
     padding: 10px;
     height: 200px;
     overflow-y: auto;
+    background: #000;
+    color: #00ff00;
 }
 
 /* this one is written by chatgpt for quick styling */
 #reasonBox {
-    border: 1px solid #aaa;
+    border: 2px solid #00ff00;
     padding: 15px;
     margin-top: 15px;
-    background: #f9f9f9;
+    background: #000;
+    color: #00ff00;
+}
+
+input, button, textarea {
+    background: #000;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 1em;
+    margin: 4px 0;
+    outline: none;
+}
+input:focus, button:focus, textarea:focus {
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 8px #00ff00;
+}
+button {
+    background: #000;
+    color: #00ff00;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #00ff00;
+}
+button:hover {
+    background: #003300;
+    color: #00ff00;
 }
