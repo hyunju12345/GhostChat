@@ -73,6 +73,9 @@
       elem.textContent = event.data; //I got a new message
       messagesDiv.appendChild(elem);
 
+      // Automatic scrolling when messages' full
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
       // Save message to chatHistory and localStorage
       chatHistory.push(event.data);
       localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
@@ -80,6 +83,10 @@
 
     button.addEventListener('click', () => {
       socket.send(input.value); //send message to the server and does all of the code part in js(socket.on('message',(data)=>{)) and then the socket.addEventListener is like we got a message
+      
+      // Automatic scrolling when messages' full
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
       input.value = '';
     })
 
