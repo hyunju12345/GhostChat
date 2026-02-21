@@ -1,96 +1,135 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <title>Simple Chat</title>
-  <link rel="stylesheet" href="style.css">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GhostCharge</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <h2>💬 Simple WebSocket Chat</h2>
-  <div id="messages"></div>
-  <input id="msgInput" placeholder="Type a message..." />
-  <button id="button">Send</button>
-  <button id="exitBtn">&larr;</button>
+  <div class="stage">
+    <div class="phone" role="application" aria-label="GhostCharge chat">
 
-  <!-- Reason box -->
-  <div id="reasonBox">
-    <h2>We noticed that you are exiting the page, why do you not want to reply?</h2>
-    <button id="busyBtn">I'm busy, remind me later</button>
-    <input type="text" id="reasonInput" placeholder="Explain why you don't want to respond">
-    <button id="sendBtn">Send</button>
-    <button id="closeBtn">Close</button> 
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left"></div>
+        <h2 class="title">GhostCharge</h2>
+        <button id="exitBtn" class="exitBtn" aria-label="Exit">›</button>
+      </header>
+
+      <!-- Messages -->
+      <main id="messages" class="messages" aria-live="polite"></main>
+
+      <!-- Composer -->
+      <footer class="composer">
+        <input id="msgInput" class="msgInput" placeholder="Type a message..." autocomplete="off" />
+        <button id="button" class="sendBtn">Send</button>
+      </footer>
+
+      <!-- Fake keyboard (desktop prototype only) -->
+      <section id="keyboard" class="keyboard" aria-label="On-screen keyboard">
+        <div class="kb-row">
+          <button class="k" data-k="Q">Q</button><button class="k" data-k="W">W</button><button class="k" data-k="E">E</button><button class="k" data-k="R">R</button><button class="k" data-k="T">T</button><button class="k" data-k="Y">Y</button><button class="k" data-k="U">U</button><button class="k" data-k="I">I</button><button class="k" data-k="O">O</button><button class="k" data-k="P">P</button>
+        </div>
+        <div class="kb-row">
+          <button class="k" data-k="A">A</button><button class="k" data-k="S">S</button><button class="k" data-k="D">D</button><button class="k" data-k="F">F</button><button class="k" data-k="G">G</button><button class="k" data-k="H">H</button><button class="k" data-k="J">J</button><button class="k" data-k="K">K</button><button class="k" data-k="L">L</button>
+        </div>
+        <div class="kb-row">
+          <button class="k wide" data-action="shift">Shift</button>
+          <button class="k" data-k="Z">Z</button><button class="k" data-k="X">X</button><button class="k" data-k="C">C</button><button class="k" data-k="V">V</button><button class="k" data-k="B">B</button><button class="k" data-k="N">N</button><button class="k" data-k="M">M</button>
+          <button class="k wide" data-action="backspace">⌫</button>
+        </div>
+        <div class="kb-row">
+          <button class="k wide" data-action="space">Space</button>
+          <button class="k wide primary" data-action="enter">Enter</button>
+        </div>
+      </section>
+
+      <!-- Reason box (Modal) -->
+      <div id="reasonBox" class="modal" aria-hidden="true">
+        <div class="modalCard">
+          <h3 class="modalTitle">Why are you leaving without replying?</h3>
+
+          <button id="busyBtn" class="modalBtn">I'm busy, remind me later</button>
+
+          <input type="text" id="reasonInput" class="modalInput" placeholder="Explain why you don't want to respond" />
+          <button id="sendBtn" class="modalBtn primary">Send automatic message</button>
+
+          <!-- ✅ new: leave without responding -> start charge mode -->
+          <button id="leaveBtn" class="modalBtn danger">Leave without responding</button>
+
+          <button id="closeBtn" class="modalBtn ghost">Close</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script>
-    // creating a new connection for our server, so connect websocket to server
-    const socket = new WebSocket('ws://149.31.196.187:3000');
-
-    //this one is localhost so use this one when you are testing two tabs on one computer
+    // ===================== WebSocket =====================
+    const socket = new WebSocket('ws://149.31.197.12:3000');
     // const socket = new WebSocket('ws://localhost:3000');
 
-    //indentify the variables that is needed for interaction in this chat and get them by id
     const messagesDiv = document.getElementById('messages');
     const input = document.getElementById('msgInput');
     const button = document.getElementById('button');
+
     const exitBtn = document.getElementById("exitBtn");
     const reasonBox = document.getElementById("reasonBox");
     const sendBtn = document.getElementById("sendBtn");
     const busyBtn = document.getElementById("busyBtn");
     const reasonInput = document.getElementById("reasonInput");
     const closeBtn = document.getElementById("closeBtn");
+    const leaveBtn = document.getElementById("leaveBtn");
 
-    //the reason box will not show from the beginning, only triggered when user exit the chat
+    // ===== reasonBox 기본 숨김 (중요: 이게 클릭 막는 거 방지) =====
     reasonBox.style.display = "none";
 
-    // Load previous chat history from localStorage
+    // Load previous chat history
     let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
 
-    // this is to allow previous messages to still show when we return to the page
+    // render previous messages
     chatHistory.forEach(msg => {
       const elem = document.createElement('div');
+      elem.className = bubbleClassFromText(msg);
       elem.textContent = msg;
       messagesDiv.appendChild(elem);
     });
 
-    //clear chat history, this is just to clean things no need for user to know about this key function
+    // clear chat history debug key
     window.addEventListener("keydown", (event) => {
-      if (event.key === "<" || event.key === "<") {
+      if (event.key === "<") {
         localStorage.removeItem("chatHistory");
         chatHistory = [];
         messagesDiv.innerHTML = "";
       }
     });
 
-
     socket.addEventListener('open', () => {
-      const elem = document.createElement('div');
-      // elem.textContent = 'connected to server';
-      messagesDiv.appendChild(elem);
+      // optional connected notice (kept empty like your original)
     });
 
     socket.addEventListener('message', (event) => {
       const elem = document.createElement('div');
-      elem.textContent = event.data; //I got a new message
+      elem.className = bubbleClassFromText(event.data);
+      elem.textContent = event.data;
       messagesDiv.appendChild(elem);
 
-      // Automatic scrolling when messages' full
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-      // Save message to chatHistory and localStorage
       chatHistory.push(event.data);
       localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
     });
 
+    // send message
     button.addEventListener('click', () => {
-      socket.send(input.value); //send message to the server and does all of the code part in js(socket.on('message',(data)=>{)) and then the socket.addEventListener is like we got a message
-      
-      // Automatic scrolling when messages' full
+      const text = input.value.trim();
+      if (!text) return;
+      socket.send(text);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
       input.value = '';
-    })
+    });
 
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
@@ -101,41 +140,105 @@
       }
     });
 
-    exitBtn.addEventListener("click", () => { //when the exitBtn is clicked then the reason box will show
-      reasonBox.style.display = "block";
+    // open reason modal
+    exitBtn.addEventListener("click", () => {
+      reasonBox.style.display = "grid";
+      reasonBox.setAttribute("aria-hidden", "false");
     });
 
+    // close modal
     closeBtn.addEventListener("click", () => {
       reasonBox.style.display = "none";
+      reasonBox.setAttribute("aria-hidden", "true");
       reasonInput.value = "";
     });
 
+    // send auto reason message -> safe mode
     sendBtn.addEventListener("click", () => {
       const text = reasonInput.value.trim();
       if (!text) return;
 
       const autoMessage = `Automated message: I'm not responding because ${text}`;
-
       socket.send(autoMessage);
 
       reasonInput.value = "";
       reasonBox.style.display = "none";
+      reasonBox.setAttribute("aria-hidden", "true");
 
-      window.location.href = "home.html";
+      // safe mode = no charge
+      window.location.href = "home.html?mode=safe";
     });
 
+    // busy -> safe mode
     busyBtn.addEventListener("click", () => {
       const autoMessage = "Automated message: I'm busy right now, I will reply later.";
       socket.send(autoMessage);
 
       reasonInput.value = "";
       reasonBox.style.display = "none";
+      reasonBox.setAttribute("aria-hidden", "true");
 
-      window.location.href = "home.html";
-
+      window.location.href = "home.html?mode=safe";
     });
 
+    // leave without responding -> charge mode
+    leaveBtn.addEventListener("click", () => {
+      reasonInput.value = "";
+      reasonBox.style.display = "none";
+      reasonBox.setAttribute("aria-hidden", "true");
+
+      window.location.href = "home.html?mode=charge";
+    });
+
+    // ===== bubble styling helper =====
+    function bubbleClassFromText(t){
+      // 아주 단순 룰: 자동메세지는 system, 그 외는 번갈아 you/me
+      if ((t || "").toLowerCase().startsWith("automated message:")) return "msg system";
+
+      // 기존 데이터는 "누가 보냈는지" 표시가 없어서, 화면용으로 번갈아 배치
+      // (원하면 나중에 서버에서 prefix 붙여서 정확히 분리 가능)
+      const n = messagesDiv.querySelectorAll(".msg").length;
+      return (n % 2 === 0) ? "msg you" : "msg me";
+    }
+
+    // ===================== Fake Keyboard (desktop prototype) =====================
+    // 모바일에서는 OS 키보드가 자동으로 뜨므로, 가짜 키보드는 CSS에서 숨깁니다.
+    document.addEventListener("DOMContentLoaded", () => {
+      const kb = document.getElementById("keyboard");
+      if (!kb) return;
+
+      let shift = false;
+
+      const showKB = () => kb.classList.add("show");
+      const hideKB = () => kb.classList.remove("show");
+
+      input.addEventListener("focus", showKB);
+
+      document.addEventListener("mousedown", (e) => {
+        const clickedInside = kb.contains(e.target) || e.target === input;
+        if (!clickedInside) hideKB();
+      });
+
+      kb.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+        const key = btn.dataset.k;
+
+        input.focus();
+
+        if (action === "shift") { shift = !shift; return; }
+        if (action === "backspace") { input.value = input.value.slice(0, -1); return; }
+        if (action === "space") { input.value += " "; return; }
+        if (action === "enter") { button.click(); return; }
+
+        if (key) {
+          input.value += shift ? key : key.toLowerCase();
+          if (shift) shift = false;
+        }
+      });
+    });
   </script>
 </body>
-
 </html>

@@ -1,65 +1,181 @@
-<!-- quick code from chatgpt to fill page, EDIT THIS STYLE -->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Conversation Ended</title>
-    <style>
-        body {
-            font-family: 'Consolas', 'Courier New', monospace;
-            padding: 20px;
-            text-align: center;
-            background: #000;
-            color: #00ff00;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-top: 20px;
-            background: #000;
-            color: #00ff00;
-            border: 2px solid #00ff00;
-            border-radius: 4px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GhostCharge • Status</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* home page 전용 */
+    .statusWrap{
+      height: 100%;
+      display:flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 18px;
+      text-align:center;
+    }
+    .statusTitle{ font-size: 18px; font-weight: 900; margin:0; }
+    .statusText{ margin:0; color: rgba(0,0,0,.65); }
+    .big{
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: .5px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.10);
+      background: rgba(0,0,0,.04);
+      font-weight: 800;
+    }
+    .btnRow{ display:flex; gap:10px; margin-top: 10px; }
+    .btn{
+      height: 44px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,.10);
+      background:#fff;
+      cursor:pointer;
+      font-weight: 900;
+    }
+    .btn.primary{
+      background: #7a0b0b;
+      color:#fff;
+      border:0;
+    }
+  </style>
 </head>
 
 <body>
-    <h2>You exited the conversation.</h2>
-    <p>Your reason has been sent to the other user.</p>
+  <div class="stage">
+    <div class="phone">
+      <header class="header">
+        <div class="header-left"></div>
+        <h2 class="title">GhostCharge</h2>
+        <div class="header-left"></div>
+      </header>
 
-    <p id="countdown">0:10</p>
-    <button onclick="returnToChat()">Return to Chat</button>
+      <div class="statusWrap">
+        <h3 class="statusTitle" id="modeTitle">Status</h3>
+        <p class="statusText" id="modeText"></p>
 
-    <script>
-        function returnToChat() {
-            window.location.href = "index.html";
+        <div class="pill" id="timerPill">Timer: <span id="countdown" style="margin-left:8px;">10:00</span></div>
+        <div class="pill">Total Donated: <span id="total" style="margin-left:8px;">$0</span></div>
+
+        <div class="big" id="bigState">—</div>
+
+        <div class="btnRow">
+          <button class="btn" onclick="window.location.href='index.html'">Return to Chat</button>
+          <button class="btn primary" id="toggleBtn">Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode") || "safe"; // safe | charge
+
+    const modeTitle = document.getElementById("modeTitle");
+    const modeText = document.getElementById("modeText");
+    const countdownEl = document.getElementById("countdown");
+    const totalEl = document.getElementById("total");
+    const bigState = document.getElementById("bigState");
+    const toggleBtn = document.getElementById("toggleBtn");
+
+    // charge rules
+    const DELAY_SEC = 10 * 60;     // 10 minutes
+    const INTERVAL_SEC = 10 * 60;  // every 10 minutes
+    const AMOUNT = 5;              // $5 each time
+
+    let running = false;
+    let delayLeft = DELAY_SEC;
+    let intervalLeft = INTERVAL_SEC;
+    let total = 0;
+    let tick = null;
+
+    function fmt(sec){
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2,"0")}`;
+    }
+
+    function setSafeUI(){
+      modeTitle.textContent = "Safe Mode";
+      modeText.textContent = "Automatic message was sent. No charge will occur while waiting.";
+      document.getElementById("timerPill").style.display = "none";
+      bigState.textContent = "NO CHARGE";
+      toggleBtn.textContent = "OK";
+      toggleBtn.onclick = () => window.location.href = "index.html";
+    }
+
+    function setChargeUI(){
+      modeTitle.textContent = "Charge Mode";
+      modeText.textContent = "You left without replying. 10 minutes grace time, then $5 every 10 minutes.";
+      bigState.textContent = "WAITING";
+      countdownEl.textContent = fmt(delayLeft);
+      totalEl.textContent = `$${total}`;
+      toggleBtn.textContent = "Start";
+    }
+
+    function donateOnce(){
+      total += AMOUNT;
+      totalEl.textContent = `$${total}`;
+      bigState.textContent = `DONATED $${AMOUNT}`;
+      setTimeout(()=> bigState.textContent = "CHARGING", 800);
+    }
+
+    function start(){
+      if (running) return;
+      running = true;
+      toggleBtn.textContent = "Pause";
+      bigState.textContent = "WAITING";
+
+      tick = setInterval(() => {
+        if (delayLeft > 0){
+          delayLeft--;
+          countdownEl.textContent = fmt(delayLeft);
+          if (delayLeft === 0){
+            // immediately donate once when grace ends
+            donateOnce();
+            intervalLeft = INTERVAL_SEC;
+          }
+          return;
         }
-        // making the timer for when the user choose to click im busy option, followed tutorial: https://www.youtube.com/watch?v=x7WJEmxNlEs
-        const startingSeconds = 10; // 10 seconds for quick test
-        let time = startingSeconds;
 
-        const countdownEl = document.getElementById('countdown');
+        // after grace: count interval
+        intervalLeft--;
+        countdownEl.textContent = fmt(intervalLeft);
 
-        setInterval(updateCountdown, 1000);
-
-        function updateCountdown() {
-            const minutes = Math.floor(time / 60);
-            let seconds = time % 60;
-
-            seconds = seconds < 10 ? '0' + seconds : seconds;
-            countdownEl.innerHTML = `${minutes}:${seconds}`;
-            if (time > 0) {
-                time--;
-            } else {
-                countdownEl.innerHTML = "Time up!";
-            }
+        if (intervalLeft === 0){
+          donateOnce();
+          intervalLeft = INTERVAL_SEC;
         }
-    </script>
+      }, 1000);
+    }
+
+    function pause(){
+      running = false;
+      toggleBtn.textContent = "Start";
+      bigState.textContent = "PAUSED";
+      clearInterval(tick);
+      tick = null;
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      if (!running) start();
+      else pause();
+    });
+
+    // init
+    if (mode === "safe") setSafeUI();
+    else setChargeUI();
+  </script>
 </body>
-
 </html>

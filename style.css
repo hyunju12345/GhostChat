@@ -1,51 +1,314 @@
-body {
-    font-family: 'Consolas', 'Courier New', monospace;
-    background: #000;
-    color: #00ff00;
-    padding: 20px;
-}
-
-#messages {
-    border: 2px solid #00ff00;
-    padding: 10px;
-    height: 200px;
-    overflow-y: auto;
-    background: #000;
-    color: #00ff00;
-}
-
-/* this one is written by chatgpt for quick styling */
-#reasonBox {
-    border: 2px solid #00ff00;
-    padding: 15px;
-    margin-top: 15px;
-    background: #000;
-    color: #00ff00;
-}
-
-input, button, textarea {
-    background: #000;
-    color: #00ff00;
-    border: 2px solid #00ff00;
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 1em;
-    margin: 4px 0;
-    outline: none;
-}
-input:focus, button:focus, textarea:focus {
-    border: 2px solid #00ff00;
-    box-shadow: 0 0 8px #00ff00;
-}
-button {
-    background: #000;
-    color: #00ff00;
-    font-weight: bold;
-    cursor: pointer;
-    border: 2px solid #00ff00;
-}
-button:hover {
-    background: #003300;
-    color: #00ff00;
-}
+:root{
+    --bg1:#cfcfcf;
+    --bg2:#efefef;
+  
+    --phone:#ffffff;
+    --shadow: 0 18px 60px rgba(0,0,0,.22);
+    --radius: 26px;
+  
+    --header:#f6d6d8;
+    --bubble-me:#7a0b0b;
+    --bubble-you:#f7cfd2;
+  
+    --line: rgba(0,0,0,.10);
+    --muted: rgba(0,0,0,.55);
+  
+    --w: 390px;
+    --h: 844px;
+  
+    --header-h: 64px;
+    --composer-h: 82px;
+  
+    --kb-h: 270px; /* fake keyboard height */
+  }
+  
+  *{ box-sizing:border-box; }
+  html, body{ height:100%; margin:0; }
+  
+  body{
+    font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text",
+                 "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  }
+  
+  /* ===== stage background ===== */
+  .stage{
+    min-height: 100vh;
+    background: radial-gradient(1200px 800px at 50% 10%, var(--bg2), var(--bg1));
+    display:grid;
+    place-items:center;
+    padding: 24px;
+  }
+  
+  /* ===== phone frame ===== */
+  .phone{
+    width: min(var(--w), 100vw);
+    height: min(var(--h), 100vh);
+    background: var(--phone);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    position: relative;
+  }
+  
+  /* mobile: full screen phone */
+  @media (max-width: 520px){
+    .stage{ padding: 0; }
+    .phone{
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      box-shadow: none;
+    }
+  }
+  
+  /* ===== header ===== */
+  .header{
+    height: var(--header-h);
+    background: var(--header);
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 0 12px;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .header-left{
+    width: 44px;
+    height: 44px;
+  }
+  
+  .title{
+    margin:0;
+    font-size: 24px;
+    color:#fff;
+    font-weight: 800;
+    letter-spacing:.2px;
+    text-shadow: 0 1px 0 rgba(0,0,0,.12);
+  }
+  
+  /* exit button */
+  .exitBtn{
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(255,255,255,.26);
+    color:#fff;
+    font-size: 28px;
+    line-height: 44px;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    backdrop-filter: blur(10px);
+  }
+  .exitBtn:active{ transform: scale(.98); }
+  
+  /* ===== messages ===== */
+  .messages{
+    position:absolute;
+    top: var(--header-h);
+    left:0;
+    right:0;
+    bottom: var(--composer-h);
+    padding: 16px 14px 18px;
+    overflow-y:auto;
+    background: #fff;
+  }
+  
+  /* bubble baseline */
+  .messages > .msg{
+    max-width: 78%;
+    padding: 12px 14px;
+    border-radius: 18px;
+    margin: 10px 0;
+    font-size: 15px;
+    line-height: 1.25;
+    word-break: break-word;
+    white-space: pre-wrap;
+    box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  }
+  
+  /* left/right styles */
+  .messages > .msg.you{
+    margin-right:auto;
+    background: var(--bubble-you);
+    color: #3a0b0b;
+    border-bottom-left-radius: 6px;
+  }
+  .messages > .msg.me{
+    margin-left:auto;
+    background: var(--bubble-me);
+    color:#fff;
+    border-bottom-right-radius: 6px;
+  }
+  
+  /* system message */
+  .messages > .msg.system{
+    max-width: 92%;
+    margin: 10px auto;
+    background: rgba(0,0,0,.06);
+    color: rgba(0,0,0,.70);
+    box-shadow: none;
+    border-radius: 14px;
+    text-align:center;
+  }
+  
+  /* ===== composer ===== */
+  .composer{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height: var(--composer-h);
+    padding: 14px 12px 18px;
+    border-top: 1px solid var(--line);
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(10px);
+    display:flex;
+    align-items:flex-end;
+    gap: 10px;
+    z-index: 11;
+  }
+  
+  .msgInput{
+    flex:1;
+    height: 46px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    padding: 0 14px;
+    font-size: 15px;
+    outline:none;
+    box-shadow: 0 10px 30px rgba(0,0,0,.10);
+  }
+  .msgInput:focus{
+    border-color: rgba(122,11,11,.25);
+    box-shadow: 0 10px 30px rgba(122,11,11,.12);
+  }
+  .msgInput::placeholder{ color: var(--muted); }
+  
+  .sendBtn{
+    width: 64px;
+    height: 46px;
+    border-radius: 16px;
+    border:0;
+    background: var(--bubble-me);
+    color:#fff;
+    font-weight: 800;
+    cursor:pointer;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  }
+  .sendBtn:active{ transform: translateY(1px); }
+  
+  /* ===== fake keyboard ===== */
+  .keyboard{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom: var(--composer-h);
+    height: var(--kb-h);
+    background: rgba(245,245,245,.92);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+    padding: 10px 10px 12px;
+    display:grid;
+    gap: 8px;
+    transform: translateY(110%);
+    transition: transform .22s ease;
+    z-index: 6;
+  }
+  .keyboard.show{
+    transform: translateY(0);
+  }
+  .kb-row{
+    display:flex;
+    gap: 8px;
+    justify-content:center;
+  }
+  .k{
+    flex: 1;
+    max-width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.08);
+    background: #fff;
+    cursor:pointer;
+    font-weight: 800;
+  }
+  .k.wide{
+    max-width: none;
+    flex: 1.8;
+  }
+  .k.primary{
+    background: var(--bubble-me);
+    color:#fff;
+    border-color: transparent;
+  }
+  
+  /* ✅ 모바일(터치 디바이스)에서는 가짜 키보드 숨김 */
+  @media (hover: none) and (pointer: coarse){
+    .keyboard{ display:none; }
+  }
+  
+  /* ===== modal ===== */
+  .modal{
+    position:absolute;
+    inset:0;
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(8px);
+    display:grid;
+    place-items:center;
+    padding: 18px;
+    z-index: 30;
+  }
+  
+  .modalCard{
+    width: min(340px, 92vw);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.25);
+    padding: 16px;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .modalTitle{
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 900;
+  }
+  
+  .modalInput{
+    width: 100%;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    padding: 0 12px;
+    outline:none;
+  }
+  
+  .modalBtn{
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,.10);
+    background:#fff;
+    cursor:pointer;
+    font-weight: 900;
+  }
+  
+  .modalBtn.primary{
+    background: var(--bubble-me);
+    color:#fff;
+    border: 0;
+  }
+  
+  .modalBtn.danger{
+    background: rgba(122,11,11,.10);
+    border-color: rgba(122,11,11,.18);
+    color: #7a0b0b;
+  }
+  
+  .modalBtn.ghost{
+    background: rgba(0,0,0,.06);
+  }
